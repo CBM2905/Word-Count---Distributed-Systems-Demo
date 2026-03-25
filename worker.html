@@ -1,0 +1,287 @@
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Worker Node</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--bg: #f2f4f7;
+			--panel: #ffffff;
+			--ink: #1f2530;
+			--line: #d7dce4;
+			--muted: #6a7282;
+			--ok: #3d6a4d;
+			--work: #2f5d86;
+			--warn: #a75a0a;
+			--shadow: 0 3px 10px rgba(17, 24, 39, 0.05);
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			font-family: "IBM Plex Sans", sans-serif;
+			background: var(--bg);
+			color: var(--ink);
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+			padding: 16px;
+		}
+
+		.panel {
+			width: min(720px, 96vw);
+			background: var(--panel);
+			border: 1px solid var(--line);
+			border-radius: 14px;
+			box-shadow: var(--shadow);
+			padding: 18px;
+		}
+
+		h2 {
+			margin: 0 0 6px;
+			font-size: 1.3rem;
+		}
+
+		.sub {
+			color: var(--muted);
+			margin-bottom: 12px;
+			font-size: 0.92rem;
+		}
+
+		.grid {
+			display: grid;
+			grid-template-columns: 1fr 180px 190px;
+			gap: 10px;
+			align-items: end;
+		}
+
+		label {
+			font-size: 0.82rem;
+			color: var(--muted);
+			display: grid;
+			gap: 6px;
+		}
+
+		input[type="text"],
+		input[type="number"] {
+			width: 100%;
+			font: inherit;
+			border-radius: 10px;
+			border: 1px solid #cad2df;
+			padding: 8px 10px;
+			background: #fff;
+		}
+
+		.remember {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 0.88rem;
+			color: var(--muted);
+			margin-top: 8px;
+		}
+
+		.status {
+			margin-top: 12px;
+			padding: 10px;
+			border-radius: 10px;
+			border: 1px solid #e5e7ee;
+			background: #fafbfd;
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			font-size: 0.92rem;
+		}
+
+		.dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			background: var(--warn);
+			animation: pulse 1.2s infinite;
+		}
+
+		.ok { background: var(--ok); }
+		.work { background: var(--work); }
+		.idle { background: var(--warn); }
+
+		.meta {
+			margin-top: 10px;
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+			font-family: "IBM Plex Mono", monospace;
+			font-size: 0.8rem;
+		}
+
+		.chip {
+			border: 1px solid #d9dde6;
+			border-radius: 999px;
+			padding: 4px 8px;
+			background: #fff;
+		}
+
+		@keyframes pulse {
+			0% { transform: scale(0.9); opacity: .7; }
+			70% { transform: scale(1.05); opacity: 1; }
+			100% { transform: scale(0.9); opacity: .7; }
+		}
+
+		@media (max-width: 760px){
+			.grid { grid-template-columns: 1fr; }
+		}
+	</style>
+</head>
+<body>
+	<section class="panel">
+		<h2>Browser Worker Node</h2>
+		<div class="sub">This tab behaves like one worker in the distributed cluster.</div>
+
+		<div class="grid">
+			<label>
+				Worker name
+				<input id="worker_name" type="text" placeholder="e.g. worker-a" />
+			</label>
+
+			<label>
+				Delay (ms)
+				<input id="delay" type="number" value="200" min="0" step="50" />
+			</label>
+
+			<label>
+				Poll interval (ms)
+				<input id="interval" type="number" value="2000" min="500" step="100" />
+			</label>
+		</div>
+
+		<label class="remember">
+			<input id="remember" type="checkbox" /> Remember this identity across tabs
+		</label>
+
+		<div class="status"><span id="status_dot" class="dot idle"></span><span id="status_text">idle</span></div>
+		<div class="meta">
+			<span class="chip">id: <span id="worker_id_chip">-</span></span>
+			<span class="chip">last task: <span id="last_task">none</span></span>
+			<span class="chip">posted results: <span id="posted_count">0</span></span>
+		</div>
+	</section>
+
+<script>
+const $ = (id) => document.getElementById(id)
+let postedCount = 0
+
+function setStatus(text, mode){
+	$('status_text').textContent = text
+	const dot = $('status_dot')
+	dot.className = 'dot ' + (mode || 'idle')
+}
+
+function getStorage(){
+	return $('remember').checked ? localStorage : sessionStorage
+}
+
+function initIdentity(){
+	const storage = getStorage()
+	let workerId = storage.getItem('worker_id')
+	if(!workerId){
+		workerId = Math.random().toString(36).slice(2, 10)
+		storage.setItem('worker_id', workerId)
+	}
+	$('worker_id_chip').textContent = workerId
+
+	const storedName = storage.getItem('worker_name') || ''
+	if(storedName && !$('worker_name').value) $('worker_name').value = storedName
+	return workerId
+}
+
+async function work(){
+	const storage = getStorage()
+	const workerId = initIdentity()
+	const workerName = $('worker_name').value.trim() || null
+	if(workerName) storage.setItem('worker_name', workerName)
+
+	try {
+		setStatus('requesting task...', 'work')
+		const r = await fetch(`/task?worker_id=${workerId}${workerName ? '&worker_name=' + encodeURIComponent(workerName) : ''}`)
+		const data = await r.json()
+
+		if(data.error === 'max_workers_reached'){
+			setStatus(`worker limit reached (${data.max_workers})`, 'idle')
+			return
+		}
+
+		if(data.error === 'missing_worker_id'){
+			setStatus('worker id missing', 'idle')
+			return
+		}
+
+		if(!data.task){
+			setStatus('no task available', 'idle')
+			return
+		}
+
+		const taskId = data.task.id
+		$('last_task').textContent = String(taskId)
+		setStatus(`processing task ${taskId}`, 'work')
+
+		const text = data.task.text || ''
+		const words = text.split(/\s+/).map(w => w.trim().toLowerCase()).filter(Boolean)
+
+		const counts = {}
+		for(let w of words){
+			w = w.replace(/[^a-z0-9'-]/g, '')
+			if(!w) continue
+			counts[w] = (counts[w] || 0) + 1
+		}
+
+		const delay = Number($('delay').value) || 0
+		await new Promise(res => setTimeout(res, delay))
+
+		await fetch('/result', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({worker_id: workerId, worker_name: workerName, task_id: taskId, counts})
+		})
+
+		postedCount += 1
+		$('posted_count').textContent = String(postedCount)
+		setStatus(`posted result for task ${taskId}`, 'ok')
+	} catch (err) {
+		console.error('worker error', err)
+		setStatus('error (see console)', 'idle')
+	}
+}
+
+$('remember').addEventListener('change', () => {
+	const sessionId = sessionStorage.getItem('worker_id')
+	const sessionName = sessionStorage.getItem('worker_name')
+	if($('remember').checked){
+		if(sessionId) localStorage.setItem('worker_id', sessionId)
+		if(sessionName) localStorage.setItem('worker_name', sessionName)
+	}
+	initIdentity()
+})
+
+$('worker_name').addEventListener('change', () => {
+	const storage = getStorage()
+	const n = $('worker_name').value.trim()
+	if(n) storage.setItem('worker_name', n)
+})
+
+initIdentity()
+
+async function loop(){
+	await work()
+	const intervalMs = Math.max(500, Number($('interval').value) || 2000)
+	setTimeout(loop, intervalMs)
+}
+
+loop()
+</script>
+
+</body>
+</html>

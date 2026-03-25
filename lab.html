@@ -1,0 +1,417 @@
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Distributed Cluster Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f2f4f7;
+      --ink: #1e2430;
+      --panel: #ffffff;
+      --line: #d7dce4;
+      --accent: #3b556e;
+      --warn: #8a4b27;
+      --blue: #2f5d86;
+      --muted: #5f6977;
+      --shadow: 0 3px 10px rgba(17, 24, 39, 0.05);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "IBM Plex Sans", sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px 16px 40px;
+    }
+
+    .hero {
+      background: #ffffff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.15rem, 2.5vw, 1.8rem);
+      letter-spacing: 0.2px;
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .kpi {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi .label {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .kpi .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 12px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .workers-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    .workers-table th,
+    .workers-table td {
+      text-align: left;
+      border-bottom: 1px solid #ece9e0;
+      padding: 9px 8px;
+      vertical-align: middle;
+    }
+
+    .workers-table th {
+      color: var(--muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.72rem;
+    }
+
+    .workers-table tbody tr {
+      cursor: pointer;
+      transition: background-color .16s ease;
+    }
+
+    .workers-table tbody tr:hover {
+      background: #f4f6f9;
+    }
+
+    .mono {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.82rem;
+    }
+
+    .bars .bar-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 44px;
+      align-items: center;
+      gap: 8px;
+      margin: 7px 0;
+      font-size: 0.86rem;
+    }
+
+    .bars .name {
+      font-family: "IBM Plex Mono", monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bars .meter {
+      height: 14px;
+      border-radius: 999px;
+      background: #edf0f4;
+      overflow: hidden;
+    }
+
+    .bars .fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .bars .fill.blue {
+      background: var(--blue);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      border: 1px solid #e5e5e5;
+      background: #fafafa;
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input,
+    button {
+      font: inherit;
+      border-radius: 10px;
+      border: 1px solid #cbcad1;
+      padding: 8px 10px;
+    }
+
+    button {
+      background: #334155;
+      border-color: #334155;
+      color: white;
+      cursor: pointer;
+      transition: transform .12s ease, opacity .12s ease;
+    }
+
+    button:hover { opacity: .95; }
+    button:active { transform: translateY(1px); }
+
+    button.secondary {
+      background: white;
+      color: #1f2937;
+      border-color: #d0d4db;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.84rem;
+      margin-top: 8px;
+      min-height: 1.2em;
+    }
+
+    @media (max-width: 980px) {
+      .kpis { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      .bars .bar-row { grid-template-columns: 100px 1fr 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <h1>Distributed Cluster Lab</h1>
+      <p>Live MapReduce demo: browser workers process chunks, coordinator aggregates global and per-worker word frequencies.</p>
+    </header>
+
+    <section class="kpis">
+      <article class="kpi">
+        <div class="label">Active Workers / Max</div>
+        <div class="value" id="kpi_workers">0</div>
+      </article>
+      <article class="kpi">
+        <div class="label">Tasks Remaining</div>
+        <div class="value" id="kpi_tasks">0</div>
+      </article>
+      <article class="kpi">
+        <div class="label">Results Received</div>
+        <div class="value" id="kpi_results">0</div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Workers</h2>
+        <div id="workers"></div>
+      </article>
+
+      <article class="panel">
+        <h2>Worker Details</h2>
+        <div id="worker_detail">Select a worker row to inspect local processed words.</div>
+      </article>
+
+      <article class="panel">
+        <h2>Global Top Words</h2>
+        <div id="aggregate"></div>
+      </article>
+
+      <article class="panel">
+        <h2>Queue & Controls</h2>
+        <div id="tasks"></div>
+        <div style="height:10px"></div>
+        <div class="controls">
+          <input id="requeue_id" placeholder="task id" style="width:120px" />
+          <button id="requeue_btn" class="secondary">Requeue</button>
+          <button id="reset_btn">Reset Cluster</button>
+        </div>
+        <div id="controls_msg" class="hint"></div>
+      </article>
+    </section>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id)
+    let selectedWorkerId = null
+    let workerDetailReqSeq = 0
+
+    async function fetchJson(path){
+      const r = await fetch(path)
+      if(!r.ok) throw new Error(`HTTP ${r.status}`)
+      return r.json()
+    }
+
+    function renderBars(items, colorClass = ''){
+      if(!items || !items.length) return '<div class="hint">No data yet.</div>'
+      const max = items[0].count || 1
+      let html = '<div class="bars">'
+      for(const item of items){
+        const pct = Math.max(4, Math.round((item.count / max) * 100))
+        html += `<div class="bar-row"><span class="name">${item.word}</span><span class="meter"><span class="fill ${colorClass}" style="width:${pct}%"></span></span><span>${item.count}</span></div>`
+      }
+      html += '</div>'
+      return html
+    }
+
+    function renderWorkersTable(workers){
+      if(!workers.length) return '<div class="hint">No active workers yet.</div>'
+      let html = '<table class="workers-table"><thead><tr><th>Worker</th><th>Name</th><th>Last Seen</th><th>Tasks</th><th>Words</th></tr></thead><tbody>'
+      for(const row of workers){
+        html += `<tr data-worker-id="${row.worker_id}">`
+        html += `<td class="mono">${row.worker_id}</td>`
+        html += `<td>${row.name || '(unnamed)'}</td>`
+        html += `<td>${row.last_seen_seconds}s</td>`
+        html += `<td>${row.tasks_processed || 0}</td>`
+        html += `<td>${row.words_processed || 0}</td>`
+        html += '</tr>'
+      }
+      html += '</tbody></table>'
+      return html
+    }
+
+    async function showWorker(id, options = {}){
+      const { silent = false } = options
+      selectedWorkerId = id
+      const reqSeq = ++workerDetailReqSeq
+      if(!silent){
+        el('worker_detail').innerHTML = '<div class="hint">Loading worker details...</div>'
+      }
+      try{
+        const j = await fetchJson(`/worker/${encodeURIComponent(id)}`)
+        // Ignore stale responses to avoid UI jitter when refresh overlaps requests.
+        if(reqSeq !== workerDetailReqSeq) return
+        let html = ''
+        html += `<div class="chip">Name: ${j.name || '(unnamed)'}</div>`
+        html += `<div class="chip mono">ID: ${j.worker_id}</div>`
+        html += `<div class="chip">Tasks: ${j.tasks_processed}</div>`
+        html += `<div class="chip">Words: ${j.words_processed}</div>`
+        html += `<div class="chip">Last seen: ${j.last_seen_seconds}s</div>`
+        html += '<div style="margin-top:10px"><strong>Local Top Words</strong></div>'
+        html += renderBars((j.top_local || []).slice(0, 18), 'blue')
+        el('worker_detail').innerHTML = html
+      } catch (err) {
+        if(reqSeq !== workerDetailReqSeq) return
+        if(!silent){
+          el('worker_detail').innerHTML = `<div class="hint" style="color:var(--warn)">Worker details unavailable.</div>`
+        }
+      }
+    }
+
+    async function refresh(){
+      try {
+        const [s, w, t, a] = await Promise.all([
+          fetchJson('/status'),
+          fetchJson('/workers'),
+          fetchJson('/tasks'),
+          fetchJson('/aggregate')
+        ])
+
+        const maxWorkers = s.max_workers || '-'
+        el('kpi_workers').textContent = `${s.connected_workers}/${maxWorkers}`
+        el('kpi_tasks').textContent = s.tasks_remaining
+        el('kpi_results').textContent = s.results_received
+
+        el('tasks').innerHTML = `<span class="chip">Pending: ${t.pending.length}</span><span class="chip">Assigned: ${Object.keys(t.assigned || {}).length}</span>`
+        el('aggregate').innerHTML = renderBars((a.top || []).slice(0, 20))
+        el('workers').innerHTML = renderWorkersTable(w.workers || [])
+
+        if(selectedWorkerId){
+          const exists = (w.workers || []).some(x => x.worker_id === selectedWorkerId)
+          if(exists){
+            showWorker(selectedWorkerId, { silent: true })
+          } else {
+            selectedWorkerId = null
+            el('worker_detail').textContent = 'Selected worker is no longer active.'
+          }
+        }
+      } catch (err) {
+        el('controls_msg').textContent = 'Error refreshing dashboard data'
+      }
+    }
+
+    el('workers').addEventListener('click', (ev) => {
+      const row = ev.target.closest('tr[data-worker-id]')
+      if(!row) return
+      showWorker(row.getAttribute('data-worker-id'))
+    })
+
+    el('requeue_btn').addEventListener('click', async () => {
+      const val = el('requeue_id').value.trim()
+      if(!val){ el('controls_msg').textContent = 'Enter a task id'; return }
+      const r = await fetch('/requeue', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({task_id: Number(val)})})
+      const j = await r.json()
+      el('controls_msg').textContent = JSON.stringify(j)
+      setTimeout(() => { el('controls_msg').textContent = '' }, 2600)
+      refresh()
+    })
+
+    el('reset_btn').addEventListener('click', async () => {
+      if(!confirm('Reset server state and rebuild tasks?')) return
+      const r = await fetch('/reset', {method:'POST'})
+      const j = await r.json()
+      el('controls_msg').textContent = JSON.stringify(j)
+      selectedWorkerId = null
+      el('worker_detail').textContent = 'Select a worker row to inspect local processed words.'
+      setTimeout(() => { el('controls_msg').textContent = '' }, 2600)
+      refresh()
+    })
+
+    setInterval(refresh, 1200)
+    refresh()
+  </script>
+</body>
+</html>

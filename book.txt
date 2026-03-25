@@ -1,0 +1,112 @@
+Distributed systems are powerful systems.
+
+A distributed system is a collection of computers that work together as a single system.
+Distributed systems allow tasks to be divided into smaller parts.
+
+Each computer processes part of the problem.
+Each worker processes its own data.
+
+Map reduce is a model for distributed computing.
+Map reduce divides a task and sends parts to many workers.
+
+Workers process data in parallel.
+Parallel systems are faster than single machines.
+
+Federated learning is another distributed paradigm.
+In federated learning many devices train models locally.
+
+Each device trains a model.
+Then a central server aggregates the models.
+
+Distributed systems appear everywhere.
+Cloud computing uses distributed systems.
+Search engines use distributed systems.
+Large data processing requires distributed systems.
+
+Learning distributed systems helps us understand modern computing.
+
+
+--- REPEAT START ---
+
+Distributed systems are powerful systems.
+
+A distributed system is a collection of computers that work together as a single system.
+Distributed systems allow tasks to be divided into smaller parts.
+
+Each computer processes part of the problem.
+Each worker processes its own data.
+
+Map reduce is a model for distributed computing.
+Map reduce divides a task and sends parts to many workers.
+
+Workers process data in parallel.
+Parallel systems are faster than single machines.
+
+Federated learning is another distributed paradigm.
+In federated learning many devices train models locally.
+
+Each device trains a model.
+Then a central server aggregates the models.
+
+Distributed systems appear everywhere.
+Cloud computing uses distributed systems.
+Search engines use distributed systems.
+Large data processing requires distributed systems.
+
+Learning distributed systems helps us understand modern computing.
+
+Distributed systems are powerful systems.
+
+A distributed system is a collection of computers that work together as a single system.
+Distributed systems allow tasks to be divided into smaller parts.
+
+Each computer processes part of the problem.
+Each worker processes its own data.
+
+Map reduce is a model for distributed computing.
+Map reduce divides a task and sends parts to many workers.
+
+Workers process data in parallel.
+Parallel systems are faster than single machines.
+
+Federated learning is another distributed paradigm.
+In federated learning many devices train models locally.
+
+Each device trains a model.
+Then a central server aggregates the models.
+
+Distributed systems appear everywhere.
+Cloud computing uses distributed systems.
+Search engines use distributed systems.
+Large data processing requires distributed systems.
+
+Learning distributed systems helps us understand modern computing.
+
+Distributed systems are powerful systems.
+
+A distributed system is a collection of computers that work together as a single system.
+Distributed systems allow tasks to be divided into smaller parts.
+
+Each computer processes part of the problem.
+Each worker processes its own data.
+
+Map reduce is a model for distributed computing.
+Map reduce divides a task and sends parts to many workers.
+
+Workers process data in parallel.
+Parallel systems are faster than single machines.
+
+Federated learning is another distributed paradigm.
+In federated learning many devices train models locally.
+
+Each device trains a model.
+Then a central server aggregates the models.
+
+Distributed systems appear everywhere.
+Cloud computing uses distributed systems.
+Search engines use distributed systems.
+Large data processing requires distributed systems.
+
+Learning distributed systems helps us understand modern computing.
+
+--- REPEAT END ---
