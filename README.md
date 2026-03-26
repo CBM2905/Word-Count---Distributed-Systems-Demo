@@ -1,36 +1,77 @@
-# Minimal MapReduce demo (browser workers)
+# Demo distribuida simple
 
-Run the coordinator and open multiple browser tabs to act as workers.
+Mini demo tipo MapReduce
+Cada pestana del navegador funciona como un worker que:
 
-Requirements:
+1. Pide una tarea al servidor.
+2. Cuenta palabras del fragmento recibido.
+3. Devuelve el resultado al coordinador.
+
+## Requisitos
 
 - Python 3.8+
-- Install dependencies: `pip install -r requirements.txt`
-
-Start server:
+- Dependencias instaladas
 
 ```bash
-python server.py
-# or: uvicorn server:app --host 0.0.0.0 --port 8000
+pip install -r requirements.txt
 ```
 
-Open `http://localhost:8000/` in several browser tabs. Each tab will request a text chunk, compute local word counts, and POST results back to the server. Check `http://localhost:8000/status` and `http://localhost:8000/aggregate` to see progress and final aggregated counts.
-
-For a simple lab dashboard open: `http://localhost:8000/dashboard` or `http://localhost:8000/lab`.
-
-Useful endpoints:
-
-- `GET /status` — summary of workers, tasks, results
-- `GET /workers` — list active workers and last-seen
-- `GET /top?n=10` — top n words
-- `POST /requeue` — requeue a task (body `{task_id: N}`)
-- `POST /reset` — reset server state and rebuild tasks
-
-Simulate multiple workers locally:
+## Ejecutar local
 
 ```bash
-python simulate_worker.py sim1 0.2 &
-python simulate_worker.py sim2 0.5 &
+python3 server.py
 ```
 
-Open the dashboard and adjust the worker compute delay from real browser workers via the `Compute delay (ms)` control.
+Abrir en navegador:
+
+- Worker: http://localhost:8000/
+- Dashboard: http://localhost:8000/lab
+
+Uso recomendado:
+
+1. Abrir 2-4 pestanas en `/` para simular workers.
+2. Dejar abierto `/lab` para ver metricas en vivo.
+3. Revisar workers activos, tareas pendientes y top de palabras.
+
+## Limite de workers
+
+Puede limitar cuantos workers activos se aceptan:
+
+```bash
+MAX_WORKERS=4 python3 server.py
+```
+
+Si se supera el limite, los workers extra reciben `max_workers_reached`.
+
+## Exponer con ngrok
+
+Con el servidor ya corriendo, en otra terminal:
+
+```bash
+ngrok http 8000
+```
+
+Si desea compartir la URL publica HTTPS de ngrok.
+
+- `https://.../` para workers
+- `https://.../lab` para dashboard
+
+Nota: ngrok solo expone su app; si el servidor local esta apagado, la URL no responde.
+
+## Endpoints utiles
+
+- GET /status: estado general (workers, tareas, resultados)
+- GET /workers: detalle de workers activos
+- GET /worker/{worker_id}: detalle de un worker
+- GET /aggregate: top global de palabras
+- GET /tasks: pendientes y asignadas
+- POST /requeue: reencolar una tarea
+- POST /reset: reiniciar estado y reconstruir tareas
+
+
+
+## Problemas comunes
+
+- Puerto en uso: Recuerde que el puerto debe estar libre
+- Server no responde en navegador: verifique que `python3 server.py` siga corriendo.
+- Dashboard sin workers: abra nuevas pestanas en `/` y espere unos segundos (suele tardar un poco).
